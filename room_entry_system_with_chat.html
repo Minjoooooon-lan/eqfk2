@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Entry System - Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.9); }
+        }
+        .vip-glow { animation: pulse-gold 2s infinite; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .shake-anim { animation: shake 0.4s ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-6 py-4 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md flex items-center justify-center">
+                <i class="fa-solid fa-shield-halved text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-white tracking-wide">Minjoon's Room Security Simulator</h1>
+                <p class="text-xs text-indigo-400 font-medium">Crafted with precision by <span class="text-amber-400 font-bold">Minjoon Song</span></p>
+            </div>
+        </div>
+        <div id="nav-user-info" class="hidden flex items-center space-x-4">
+            <div id="user-badge-display" class="text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700"></div>
+            <div class="text-right">
+                <p id="nav-username" class="text-sm font-bold text-indigo-300"></p>
+                <p class="text-xs text-slate-400">Balance: <span id="nav-balance" class="text-emerald-400 font-bold">0</span> pts</p>
+            </div>
+            <button onclick="logout()" class="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 px-3 py-1.5 rounded-lg text-sm font-medium transition-all shadow-sm">
+                <i class="fa-solid fa-right-from-bracket mr-1"></i> Log Out
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Simulator Container -->
+    <main class="flex-grow max-w-5xl w-full mx-auto p-6 flex flex-col justify-center">
+
+        <!-- AUTH VIEW -->
+        <div id="view-auth" class="grid md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto w-full py-12">
+            <div class="bg-gradient-to-br from-indigo-900/50 to-slate-900 border border-indigo-500/20 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-indigo-400 text-9xl pointer-events-none">
+                    <i class="fa-solid fa-door-closed"></i>
+                </div>
+                <div class="inline-block bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-semibold mb-4">
+                    🔒 Live Web Simulator
+                </div>
+                <h2 class="text-3xl font-extrabold text-white mb-3">Room Entry & Permission Gateway</h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Test your room security system right here in the browser! Log in as admin or your brother, ask for entry, check out the annoying ads, and test all features.
+                </p>
+                <div class="space-y-3 text-sm text-slate-300">
+                    <div class="flex items-center space-x-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                        <i class="fa-solid fa-crown text-amber-400 text-lg"></i>
+                        <span>Admin: <strong class="text-white">minjoonsong</strong></span>
+                    </div>
+                    <div class="flex items-center space-x-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                        <i class="fa-solid fa-user text-emerald-400 text-lg"></i>
+                        <span>Brother: <strong class="text-white">brother</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl relative">
+                <div id="form-login-container">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-right-to-bracket text-indigo-400 mr-2"></i> Log In</h3>
+                        <button onclick="toggleAuthMode('register')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4">
+                            Create Account →
+                        </button>
+                    </div>
+                    <form onsubmit="handleLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Username</label>
+                            <input type="text" id="login-username" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Enter username...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Password</label>
+                            <input type="password" id="login-password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Enter password...">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/25 transition-all">
+                            Log In Simulator
+                        </button>
+                    </form>
+                </div>
+
+                <div id="form-register-container" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Create Account</h3>
+                        <button onclick="toggleAuthMode('login')" class="text-xs text-slate-400 hover:text-slate-300 font-semibold">
+                            ← Back to Log In
+                        </button>
+                    </div>
+                    <form onsubmit="handleRegister(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Choose Username</label>
+                            <input type="text" id="reg-username" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500" placeholder="e.g. brother">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Login Password</label>
+                            <input type="password" id="reg-password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500" placeholder="Create password...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Bank Password</label>
+                            <input type="password" id="reg-bank-pass" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500" placeholder="4-digit PIN...">
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all">
+                            Register Account (Get 30 pts)
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW -->
+        <div id="view-admin" class="hidden space-y-6 py-6">
+            <div class="grid md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Room Status</p>
+                        <h4 id="admin-room-status-text" class="text-lg font-bold text-emerald-400 mt-1">🟢 Door Open</h4>
+                    </div>
+                    <button onclick="toggleLockdown()" id="lockdown-btn" class="bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 px-3 py-2 rounded-xl text-xs font-bold transition-all">
+                        Lockdown Mode
+                    </button>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Pending Requests</p>
+                        <h4 id="admin-pending-count" class="text-2xl font-black text-indigo-400 mt-1">0</h4>
+                    </div>
+                    <div class="bg-indigo-500/10 p-3 rounded-xl text-indigo-400"><i class="fa-solid fa-bell text-xl"></i></div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">History Records</p>
+                        <h4 id="admin-history-count" class="text-2xl font-black text-amber-400 mt-1">0</h4>
+                    </div>
+                    <div class="bg-amber-500/10 p-3 rounded-xl text-amber-400"><i class="fa-solid fa-chart-line text-xl"></i></div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Simulator Control</p>
+                        <button onclick="refreshAdminData()" class="mt-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm">
+                            <i class="fa-solid fa-rotate mr-1"></i> Refresh HQ
+                        </button>
+                    </div>
+                    <div class="bg-emerald-500/10 p-3 rounded-xl text-emerald-400"><i class="fa-solid fa-shield text-xl"></i></div>
+                </div>
+            </div>
+
+            <div id="admin-alert-banner" class="hidden bg-rose-950/80 border border-rose-600/50 p-4 rounded-2xl flex items-center space-x-3 text-rose-200 shadow-lg">
+                <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-400 animate-bounce"></i>
+                <div>
+                    <h5 class="font-bold text-sm">SECURITY ALERT!</h5>
+                    <p id="admin-alert-text" class="text-xs text-rose-300">A user has dangerously low balance or bank funds!</p>
+                </div>
+            </div>
+
+            <div class="flex space-x-2 border-b border-slate-800 pb-3">
+                <button onclick="switchAdminTab('requests')" id="tab-btn-requests" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all">
+                    Pending Requests (<span id="tab-req-badge">0</span>)
+                </button>
+                <button onclick="switchAdminTab('quests')" id="tab-btn-quests" class="bg-slate-900 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold border border-slate-800">
+                    Chore & Quest Board
+                </button>
+                <button onclick="switchAdminTab('users')" id="tab-btn-users" class="bg-slate-900 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold border border-slate-800">
+                    User Management & Banhammer
+                </button>
+                <button onclick="switchAdminTab('history')" id="tab-btn-history" class="bg-slate-900 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold border border-slate-800">
+                    Audit Log & Analytics
+                </button>
+                <button onclick="switchAdminTab('chat')" id="tab-btn-chat" class="bg-slate-900 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold border border-slate-800">
+                    <i class="fa-solid fa-comments mr-1"></i> Chat
+                </button>
+            </div>
+
+            <div id="admin-tab-requests" class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-list-check text-indigo-400 mr-2"></i> Live Pending Requests</h3>
+                </div>
+                <div id="admin-requests-list" class="space-y-4"></div>
+            </div>
+
+            <div id="admin-tab-quests" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                    <h3 class="text-lg font-bold text-white mb-2"><i class="fa-solid fa-clipboard-question text-emerald-400 mr-2"></i> Create New Chore / Quest</h3>
+                    <form onsubmit="handleCreateQuest(event)" class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Quest Title</label>
+                            <input type="text" id="quest-title" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm" placeholder="e.g. Wash dishes">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Reward Points (+)</label>
+                            <input type="number" id="quest-reward" value="25" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow-md">Publish Quest</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                    <h3 class="text-lg font-bold text-white mb-4">Active & Pending Submissions</h3>
+                    <div id="admin-quests-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div id="admin-tab-users" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                    <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-users text-indigo-400 mr-2"></i> Registered Users Control</h3>
+                    <div id="admin-users-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <div id="admin-tab-history" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                    <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-shield-cat text-amber-400 mr-2"></i> Complete Audit Log</h3>
+                    <div id="admin-history-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div id="admin-tab-chat" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-comments text-indigo-400 mr-2"></i> Room Chat</h3>
+                            <p class="text-xs text-slate-400 mt-1">Chat with the other accounts in this simulator.</p>
+                        </div>
+                        <button onclick="clearChat()" class="text-xs text-rose-400 hover:text-rose-300 font-bold border border-rose-500/20 px-3 py-1.5 rounded-lg">
+                            Clear Chat
+                        </button>
+                    </div>
+                    <div id="chat-messages-admin" class="bg-slate-950 border border-slate-800 rounded-2xl p-4 h-80 overflow-y-auto space-y-3"></div>
+                    <form onsubmit="sendChatMessage(event)" class="flex gap-2 mt-3">
+                        <input id="chat-input-admin" type="text" maxlength="500" autocomplete="off"
+                            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500"
+                            placeholder="Type a message...">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 rounded-xl">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- USER VIEW -->
+        <div id="view-user" class="hidden space-y-6 py-6">
+            <!-- Instruction Sheet Banner -->
+            <div class="bg-gradient-to-r from-indigo-900/80 to-slate-900 border border-indigo-500/30 p-6 rounded-3xl shadow-xl relative overflow-hidden">
+                <div class="flex items-start space-x-4">
+                    <div class="bg-indigo-600 text-white p-3 rounded-2xl text-2xl shadow-md flex-shrink-0">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-lg font-bold text-white">📜 Room Entry Instruction Sheet</h3>
+                            <span class="bg-amber-500/20 text-amber-300 text-xs px-2.5 py-0.5 rounded-full font-bold">Important Rules</span>
+                        </div>
+                        <ul class="text-xs md:text-sm text-slate-300 space-y-1 list-disc list-inside leading-relaxed">
+                            <li><strong>Standard Entry:</strong> Costs 10 points. Requires your bank password.</li>
+                            <li><strong>VIP Fast Pass:</strong> Costs 50 points for high-priority gold-bordered admin alerts!</li>
+                            <li><strong>Bank & Recharges:</strong> You start with 100 bank points. If your bank hits 0, you must ask Minjoon Song for an admin override password to refill!</li>
+                            <li><strong>Pro / Mega / Ultra Subscriptions:</strong> Unlock exclusive entry discounts, custom avatars, and remove annoying popups!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md">
+                    <p class="text-xs text-slate-400 font-medium">Point Balance</p>
+                    <h3 id="user-display-balance" class="text-2xl font-black text-emerald-400 mt-1">0</h3>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md">
+                    <p class="text-xs text-slate-400 font-medium">Bank Balance</p>
+                    <h3 id="user-display-bank" class="text-2xl font-black text-indigo-400 mt-1">100</h3>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md">
+                    <p class="text-xs text-slate-400 font-medium">Subscription Tier</p>
+                    <h3 id="user-display-tier" class="text-lg font-bold text-amber-400 mt-1 uppercase">Free Peasant</h3>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Bank Action</p>
+                        <button onclick="openBankModal()" class="mt-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition-all shadow-sm">
+                            <i class="fa-solid fa-piggy-bank mr-1"></i> Top-Up Bank
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="user-room-status-banner" class="bg-emerald-950/40 border border-emerald-500/30 p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div id="user-status-dot" class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
+                    <span id="user-room-status-text" class="text-sm font-bold text-emerald-300">Room Status: 🟢 Welcome / Door Open</span>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2"><i class="fa-solid fa-door-open text-indigo-400 mr-2"></i> Request Room Entry</h3>
+                        <p class="text-xs text-slate-400 mb-6">Standard Entry costs <span class="text-emerald-400 font-bold">10 points</span>. VIP Fast Pass costs <span class="text-amber-400 font-bold">50 points</span>.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Reason for Entry</label>
+                            <input type="text" id="user-entry-reason" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm" placeholder="e.g. Can I borrow a charger?">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Bank Password</label>
+                            <input type="password" id="user-entry-bank-pass" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm" placeholder="Bank password...">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <button onclick="requestEntry(false)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md">Ask Permission (10 pts)</button>
+                            <button onclick="requestEntry(true)" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black py-3 px-4 rounded-xl text-sm shadow-md vip-glow">VIP Fast Pass (50 pts)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2"><i class="fa-solid fa-keypad text-emerald-400 mr-2"></i> Virtual Vault Keypad</h3>
+                        <p class="text-xs text-slate-400 mb-4">Type the secret 4-digit PIN given by Minjoon when your request is accepted!</p>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl text-center space-y-4">
+                        <div id="vault-display" class="text-2xl font-mono tracking-widest text-slate-500 bg-slate-900 py-3 rounded-xl border border-slate-800">----</div>
+                        <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                            <button onclick="keypadPress('1')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">1</button>
+                            <button onclick="keypadPress('2')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">2</button>
+                            <button onclick="keypadPress('3')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">3</button>
+                            <button onclick="keypadPress('4')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">4</button>
+                            <button onclick="keypadPress('5')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">5</button>
+                            <button onclick="keypadPress('6')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">6</button>
+                            <button onclick="keypadPress('7')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">7</button>
+                            <button onclick="keypadPress('8')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">8</button>
+                            <button onclick="keypadPress('9')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">9</button>
+                            <button onclick="keypadClear()" class="bg-rose-900/40 text-rose-300 font-bold py-2 rounded-lg text-xs">Clear</button>
+                            <button onclick="keypadPress('0')" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-lg">0</button>
+                            <button onclick="keypadSubmit()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs">Unlock</button>
+                        </div>
+                        <p id="vault-status-msg" class="text-xs text-slate-400 font-medium"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                    <h3 class="text-xl font-bold text-white mb-4"><i class="fa-solid fa-store text-amber-400 mr-2"></i> VIP Upgrade Shop</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-indigo-300">⭐ PRO Tier (300 pts)</h4>
+                                <p class="text-xs text-slate-400">Removes ads & unlocks Character Designer!</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="openLearnMore('pro')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-bold">Learn More</button>
+                                <button onclick="buyTier('pro', 300)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold">Upgrade</button>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-amber-400">🔥 MEGA Tier (750 pts)</h4>
+                                <p class="text-xs text-slate-400">Entry discounts & higher bank limits.</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="openLearnMore('mega')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-bold">Learn More</button>
+                                <button onclick="buyTier('mega', 750)" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">Upgrade</button>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-rose-400">⚡ ULTRA Tier (1,500 pts)</h4>
+                                <p class="text-xs text-slate-400">Ultimate flex & rainbow badge.</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="openLearnMore('ultra')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-bold">Learn More</button>
+                                <button onclick="buyTier('ultra', 1500)" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold">Upgrade</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="character-studio-card" class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i> Character Studio</h3>
+                            <span id="studio-lock-badge" class="bg-rose-500/20 text-rose-300 text-xs px-2.5 py-0.5 rounded-full font-bold">Locked (Requires PRO)</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-4">Design your custom avatar with endless combinations once you upgrade to PRO!</p>
+                    </div>
+                    <div id="studio-content" class="opacity-50 pointer-events-none space-y-4">
+                        <div class="flex items-center justify-center space-x-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                            <div id="avatar-preview" class="w-16 h-16 bg-indigo-600/30 rounded-2xl flex items-center justify-center text-3xl border border-indigo-500/50 shadow-inner">👦</div>
+                            <div class="text-left">
+                                <h4 class="font-bold text-white text-sm">Custom Avatar</h4>
+                                <p class="text-xs text-indigo-400">Status: Styled & Ready</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="changeAvatarFeature('emoji', ['👦','🧑','👨','🧔','🥷','🦸','🤖'])" class="bg-slate-800 hover:bg-slate-700 text-white text-xs py-2 rounded-lg font-bold">Face 🔄</button>
+                            <button onclick="changeAvatarFeature('bg', ['bg-indigo-600','bg-emerald-600','bg-amber-600','bg-rose-600','bg-purple-600'])" class="bg-slate-800 hover:bg-slate-700 text-white text-xs py-2 rounded-lg font-bold">Color 🎨</button>
+                            <button onclick="changeAvatarFeature('aura', ['border-indigo-400','border-amber-400','border-rose-400','border-emerald-400'])" class="bg-slate-800 hover:bg-slate-700 text-white text-xs py-2 rounded-lg font-bold">Aura ✨</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                <h3 class="text-xl font-bold text-white mb-2"><i class="fa-solid fa-list-check text-emerald-400 mr-2"></i> Available Quests & Chores</h3>
+                <div id="user-quests-list" class="space-y-3"></div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                <h3 class="text-xl font-bold text-white mb-4"><i class="fa-solid fa-clock-rotate-left text-indigo-400 mr-2"></i> Your Request History</h3>
+                <div id="user-history-list" class="space-y-3"></div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-comments text-indigo-400 mr-2"></i> Room Chat</h3>
+                        <p class="text-xs text-slate-400 mt-1">Send messages to the other accounts using this simulator.</p>
+                    </div>
+                    <span id="chat-online-count" class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full font-bold">Local Chat</span>
+                </div>
+                <div id="chat-messages-user" class="bg-slate-950 border border-slate-800 rounded-2xl p-4 h-80 overflow-y-auto space-y-3"></div>
+                <form onsubmit="sendChatMessage(event)" class="flex gap-2 mt-3">
+                    <input id="chat-input-user" type="text" maxlength="500" autocomplete="off"
+                        class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500"
+                        placeholder="Type a message...">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 rounded-xl">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900/80 border-t border-slate-800 py-4 px-6 text-center text-xs text-slate-400 mt-12">
+        <p>Room Entry Simulator &bull; Proudly crafted & designed by <span class="text-amber-400 font-bold">Minjoon Song</span> &copy; 2026</p>
+    </footer>
+
+    <!-- Modals -->
+    <div id="modal-duo-ad" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-indigo-950 to-slate-900 border-2 border-indigo-500/50 p-8 rounded-3xl max-w-md w-full shadow-2xl text-center space-y-6 relative shake-anim">
+            <div class="absolute top-4 right-4 bg-rose-500/20 text-rose-300 text-xs px-2.5 py-1 rounded-full font-bold">⚠️ MANDATORY AD</div>
+            <div class="w-20 h-20 bg-indigo-600/30 rounded-full flex items-center justify-center mx-auto text-4xl border border-indigo-500">👑</div>
+            <div>
+                <h3 class="text-2xl font-black text-white mb-2">Did you know?</h3>
+                <p class="text-xl font-extrabold text-amber-400 leading-snug">"Minjoon is extremely handsome, smart, and cool!"</p>
+                <p class="text-xs text-slate-400 mt-3">You must appreciate this fact to proceed. Upgrade to Pro to remove all annoying ads!</p>
+            </div>
+            <div class="space-y-3">
+                <button onclick="closeDuoAd()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg">I Understand! (Continue Request)</button>
+                <button onclick="fakeRejectAd()" class="text-xs text-slate-500 hover:text-slate-400 underline">No thanks, I choose to remain a peasant 😢</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-bank" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full shadow-2xl space-y-6 relative">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-piggy-bank text-emerald-400 mr-2"></i> Bank Account Top-Up</h3>
+                <button onclick="closeBankModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Bank Password</label>
+                    <input type="password" id="bank-modal-pass" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm" placeholder="Bank password...">
+                </div>
+                <div id="bank-override-container" class="hidden">
+                    <label class="block text-xs font-semibold uppercase text-rose-400 mb-1">Bank is Empty! Admin Override Password</label>
+                    <input type="password" id="bank-admin-override-pass" class="w-full bg-slate-950 border border-rose-800 rounded-xl px-4 py-3 text-white text-sm" placeholder="Admin password...">
+                </div>
+                <button onclick="processBankTopUp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg">Top-Up 50 Points</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-learn-more" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full shadow-2xl space-y-6 relative">
+            <div class="flex justify-between items-center">
+                <h3 id="learn-more-title" class="text-xl font-bold text-white">Subscription Details</h3>
+                <button onclick="closeLearnMore()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="learn-more-body" class="text-sm text-slate-300 space-y-3"></div>
+            <button onclick="closeLearnMore()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-sm">Got It</button>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "minjoon_room_system_sim_db";
+
+        function getInitialData() {
+            return {
+                users: {
+                    "minjoonsong": { password: "password", bank_password: "123", balance: 1000, bank: 500, role: "admin", tier: "ULTRA", avatar: { emoji: "👑", bg: "bg-indigo-600", aura: "border-indigo-400" } },
+                    "brother": { password: "1716", bank_password: "0105", balance: 50, bank: 100, role: "user", tier: "free", avatar: { emoji: "👦", bg: "bg-emerald-600", aura: "border-emerald-400" }, banned: false, banReason: "" }
+                },
+                requests: [],
+                quests: [
+                    { id: 1, title: "Wash the kitchen dishes", reward: 25, status: "open", completedBy: "" },
+                    { id: 2, title: "Buy snacks for Minjoon", reward: 40, status: "open", completedBy: "" }
+                ],
+                history: [],
+                chatMessages: [],
+                settings: { lockdown: false, roomStatusText: "🟢 Welcome / Door Open" },
+                activeUser: null,
+                pendingRequestPayload: null
+            };
+        }
+
+        let db = loadDB();
+
+        function loadDB() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            const loaded = data ? JSON.parse(data) : getInitialData();
+            if (!Array.isArray(loaded.chatMessages)) loaded.chatMessages = [];
+            return loaded;
+        }
+
+        function saveDB() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        }
+
+        setInterval(() => {
+            const previousMessageCount = Array.isArray(db.chatMessages) ? db.chatMessages.length : 0;
+            db = loadDB();
+            if (db.activeUser) {
+                renderDashboard();
+                const activeView = db.users[db.activeUser]?.role === 'admin' ? 'admin' : 'user';
+                const container = document.getElementById(`chat-messages-${activeView}`);
+                if (container && db.chatMessages.length !== previousMessageCount) {
+                    renderChat(activeView);
+                }
+            }
+        }, 1000);
+
+        function toggleAuthMode(mode) {
+            if (mode === 'register') {
+                document.getElementById('form-login-container').classList.add('hidden');
+                document.getElementById('form-register-container').classList.remove('hidden');
+            } else {
+                document.getElementById('form-register-container').classList.add('hidden');
+                document.getElementById('form-login-container').classList.remove('hidden');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+            if (!db.users[u] || db.users[u].password !== p) {
+                alert("Invalid username or password!");
+                return;
+            }
+            if (db.users[u].banned) {
+                alert(`ACCOUNT BANNED! Reason: ${db.users[u].banReason}`);
+                return;
+            }
+            db.activeUser = u;
+            saveDB();
+            renderDashboard();
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const u = document.getElementById('reg-username').value.trim();
+            const p = document.getElementById('reg-password').value.trim();
+            const bp = document.getElementById('reg-bank-pass').value.trim();
+            if (db.users[u]) {
+                alert("Username already exists!");
+                return;
+            }
+            db.users[u] = { password: p, bank_password: bp, balance: 30, bank: 100, role: "user", tier: "free", avatar: { emoji: "👦", bg: "bg-emerald-600", aura: "border-emerald-400" }, banned: false, banReason: "" };
+            db.activeUser = u;
+            saveDB();
+            alert("Account created! 30 starting points added.");
+            renderDashboard();
+        }
+
+        function logout() {
+            db.activeUser = null;
+            saveDB();
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            db = loadDB();
+            const authView = document.getElementById('view-auth');
+            const adminView = document.getElementById('view-admin');
+            const userView = document.getElementById('view-user');
+            const navUserInfo = document.getElementById('nav-user-info');
+
+            if (!db.activeUser) {
+                authView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                userView.classList.add('hidden');
+                navUserInfo.classList.add('hidden');
+                return;
+            }
+
+            authView.classList.add('hidden');
+            navUserInfo.classList.remove('hidden');
+            const userData = db.users[db.activeUser];
+            document.getElementById('nav-username').innerText = db.activeUser;
+            document.getElementById('nav-balance').innerText = userData.balance;
+            
+            const badgeEl = document.getElementById('user-badge-display');
+            badgeEl.innerText = userData.tier;
+            badgeEl.className = `text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider border ${userData.tier === 'ULTRA' ? 'bg-rose-500/20 text-rose-300 border-rose-500' : userData.tier === 'MEGA' ? 'bg-amber-500/20 text-amber-300 border-amber-500' : userData.tier === 'PRO' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500' : 'bg-slate-800 text-slate-300 border-slate-700'}`;
+
+            if (userData.role === 'admin') {
+                adminView.classList.remove('hidden');
+                userView.classList.add('hidden');
+                renderAdminDashboard();
+            } else {
+                adminView.classList.add('hidden');
+                userView.classList.remove('hidden');
+                renderUserDashboard();
+            }
+        }
+
+        function switchAdminTab(tab) {
+            ['requests', 'quests', 'users', 'history', 'chat'].forEach(t => {
+                document.getElementById(`admin-tab-${t}`).classList.add('hidden');
+                document.getElementById(`tab-btn-${t}`).className = "bg-slate-900 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold border border-slate-800";
+            });
+            document.getElementById(`admin-tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tab}`).className = "bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold";
+            renderAdminDashboard();
+        }
+
+        function renderAdminDashboard() {
+            const pending = db.requests.filter(r => r.status === 'Pending');
+            document.getElementById('admin-pending-count').innerText = pending.length;
+            document.getElementById('tab-req-badge').innerText = pending.length;
+            document.getElementById('admin-history-count').innerText = db.history.length;
+            renderChat('admin');
+
+            let alertMsg = "";
+            for (let uname in db.users) {
+                if (db.users[uname].role === 'user') {
+                    if (db.users[uname].balance < 10) alertMsg += `${uname} has low points (${db.users[uname].balance})! `;
+                    if (db.users[uname].bank <= 0) alertMsg += `${uname}'s bank is empty! `;
+                }
+            }
+            const banner = document.getElementById('admin-alert-banner');
+            if (alertMsg) {
+                banner.classList.remove('hidden');
+                document.getElementById('admin-alert-text').innerText = alertMsg;
+            } else {
+                banner.classList.add('hidden');
+            }
+
+            document.getElementById('admin-room-status-text').innerText = db.settings.roomStatusText;
+            document.getElementById('lockdown-btn').innerText = db.settings.lockdown ? "Disable Lockdown" : "Lockdown Mode";
+
+            const reqList = document.getElementById('admin-requests-list');
+            if (pending.length === 0) {
+                reqList.innerHTML = `<div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl text-center text-slate-400">No pending requests right now.</div>`;
+            } else {
+                reqList.innerHTML = pending.map(req => `
+                    <div class="bg-slate-900 border ${req.isFastPass ? 'border-amber-500/80 vip-glow' : 'border-slate-800'} p-6 rounded-3xl shadow-xl space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold px-3 py-1 rounded-full ${req.isFastPass ? 'bg-amber-500 text-slate-950' : 'bg-indigo-500/20 text-indigo-300'}">${req.isFastPass ? '⚡ VIP FAST PASS' : 'Standard'}</span>
+                            <span class="text-xs text-slate-400">${req.timestamp}</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-base">User: <span class="text-indigo-400">${req.username}</span></h4>
+                            <p class="text-xs text-slate-300 mt-1"><strong>Reason:</strong> "${req.user_reason}"</p>
+                        </div>
+                        <div class="space-y-2 pt-2 border-t border-slate-800">
+                            <input type="text" id="admin-note-${req.id}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm" placeholder="Admin note/reason...">
+                            <div class="grid grid-cols-2 gap-3 pt-2">
+                                <button onclick="reviewRequest(${req.id}, 'Accepted')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs">Accept & PIN</button>
+                                <button onclick="reviewRequest(${req.id}, 'Declined')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs">Decline</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const qList = document.getElementById('admin-quests-list');
+            qList.innerHTML = db.quests.map(q => `
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-white text-sm">${q.title}</h4>
+                        <p class="text-xs text-emerald-400">Reward: +${q.reward} pts | Status: <span class="uppercase">${q.status}</span> ${q.completedBy ? `(${q.completedBy})` : ''}</p>
+                    </div>
+                    ${q.status === 'pending_approval' ? `
+                        <div class="space-x-2">
+                            <button onclick="approveQuest(${q.id}, true)" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold">Approve</button>
+                            <button onclick="approveQuest(${q.id}, false)" class="bg-rose-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold">Reject</button>
+                        </div>
+                    ` : `<button onclick="deleteQuest(${q.id})" class="text-rose-400 text-xs"><i class="fa-solid fa-trash"></i></button>`}
+                </div>
+            `).join('');
+
+            const uList = document.getElementById('admin-users-list');
+            uList.innerHTML = Object.keys(db.users).map(uname => {
+                const u = db.users[uname];
+                return `
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${uname} (${u.role})</h4>
+                            <p class="text-xs text-slate-400">Points: <strong class="text-emerald-400">${u.balance}</strong> | Bank: <strong class="text-indigo-400">${u.bank}</strong> | Tier: <strong class="text-amber-400">${u.tier}</strong></p>
+                        </div>
+                        ${u.role !== 'admin' ? `<button onclick="toggleBanUser('${uname}')" class="${u.banned ? 'bg-emerald-600' : 'bg-rose-600'} text-white text-xs px-3 py-1.5 rounded-lg font-bold">${u.banned ? 'Unban' : 'Ban'}</button>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const hList = document.getElementById('admin-history-list');
+            hList.innerHTML = db.history.length === 0 ? `<p class="text-slate-400 text-xs">No history recorded.</p>` : db.history.map(h => `
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl text-xs space-y-1">
+                    <div class="flex justify-between font-bold text-slate-300">
+                        <span>User: <strong class="text-indigo-400">${h.username}</strong></span>
+                        <span class="${h.status === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">${h.status}</span>
+                    </div>
+                    <p class="text-slate-400">Reason: "${h.user_reason}" | Admin Note: "${h.admin_reason || 'None'}"</p>
+                </div>
+            `).join('');
+        }
+
+        function refreshAdminData() { renderAdminDashboard(); alert("Refreshed!"); }
+        function toggleLockdown() {
+            db.settings.lockdown = !db.settings.lockdown;
+            db.settings.roomStatusText = db.settings.lockdown ? "🔴 Lockdown / Do Not Disturb" : "🟢 Welcome / Door Open";
+            saveDB();
+            renderAdminDashboard();
+        }
+
+        function reviewRequest(reqId, status) {
+            const note = document.getElementById(`admin-note-${reqId}`).value.trim() || "No note";
+            const reqIndex = db.requests.findIndex(r => r.id === reqId);
+            if (reqIndex === -1) return;
+            const req = db.requests[reqIndex];
+            req.status = status;
+            req.admin_reason = note;
+            if (status === 'Accepted') req.pin = Math.floor(1000 + Math.random() * 9000).toString();
+            db.requests.splice(reqIndex, 1);
+            db.history.unshift(req);
+            saveDB();
+            renderAdminDashboard();
+        }
+
+        function handleCreateQuest(e) {
+            e.preventDefault();
+            db.quests.push({ id: Date.now(), title: document.getElementById('quest-title').value.trim(), reward: parseInt(document.getElementById('quest-reward').value), status: "open", completedBy: "" });
+            saveDB();
+            document.getElementById('quest-title').value = "";
+            renderAdminDashboard();
+        }
+
+        function approveQuest(questId, isApproved) {
+            const q = db.quests.find(x => x.id === questId);
+            if (!q) return;
+            if (isApproved && q.completedBy && db.users[q.completedBy]) {
+                db.users[q.completedBy].balance += q.reward;
+                q.status = "completed";
+            } else { q.status = "open"; q.completedBy = ""; }
+            saveDB();
+            renderAdminDashboard();
+        }
+
+        function deleteQuest(questId) { db.quests = db.quests.filter(q => q.id !== questId); saveDB(); renderAdminDashboard(); }
+        function toggleBanUser(uname) {
+            db.users[uname].banned = !db.users[uname].banned;
+            db.users[uname].banReason = db.users[uname].banned ? "Violation of rules" : "";
+            saveDB();
+            renderAdminDashboard();
+        }
+
+        function renderUserDashboard() {
+            const userData = db.users[db.activeUser];
+            document.getElementById('user-display-balance').innerText = userData.balance;
+            document.getElementById('user-display-bank').innerText = userData.bank;
+            document.getElementById('user-display-tier').innerText = userData.tier;
+
+            const studioCard = document.getElementById('studio-content');
+            const studioBadge = document.getElementById('studio-lock-badge');
+            if (userData.tier !== 'free') {
+                studioCard.classList.remove('opacity-50', 'pointer-events-none');
+                studioBadge.innerText = "Unlocked ✨";
+                studioBadge.className = "bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-0.5 rounded-full font-bold";
+                document.getElementById('avatar-preview').innerText = userData.avatar.emoji;
+                document.getElementById('avatar-preview').className = `w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border ${userData.avatar.aura} ${userData.avatar.bg}`;
+            }
+
+            document.getElementById('user-quests-list').innerHTML = db.quests.map(q => `
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center text-sm">
+                    <div>
+                        <h4 class="font-bold text-white">${q.title}</h4>
+                        <p class="text-xs text-emerald-400">Reward: +${q.reward} pts</p>
+                    </div>
+                    ${q.status === 'open' ? `<button onclick="submitQuest(${q.id})" class="bg-indigo-600 text-white text-xs px-4 py-2 rounded-xl font-bold">Complete</button>` : `<span class="text-xs text-amber-400 font-bold">${q.status}</span>`}
+                </div>
+            `).join('');
+
+            const userReqs = db.requests.concat(db.history).filter(r => r.username === db.activeUser);
+            document.getElementById('user-history-list').innerHTML = userReqs.length === 0 ? `<p class="text-slate-400 text-xs">No requests made.</p>` : userReqs.map(r => `
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl text-xs space-y-1">
+                    <div class="flex justify-between font-bold text-slate-300">
+                        <span>Status: <strong class="${r.status === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">${r.status}</strong></span>
+                        <span>${r.timestamp}</span>
+                    </div>
+                    <p class="text-slate-400">Reason: "${r.user_reason}" | Admin Note: "${r.admin_reason || 'None'}"</p>
+                    ${r.pin ? `<p class="text-emerald-300 font-bold">🔑 PIN: ${r.pin}</p>` : ''}
+                </div>
+            `).join('');
+            renderChat('user');
+        }
+
+        let currentRequestIsFastPass = false;
+        function requestEntry(isFastPass) {
+            if (db.settings.lockdown) { alert("Room is in Lockdown Mode!"); return; }
+            const reason = document.getElementById('user-entry-reason').value.trim();
+            const bankPass = document.getElementById('user-entry-bank-pass').value.trim();
+            const cost = isFastPass ? 50 : 10;
+            if (!reason || !bankPass) { alert("Fill in reason and bank password!"); return; }
+            const userData = db.users[db.activeUser];
+            if (bankPass !== userData.bank_password) { alert("Incorrect bank password!"); return; }
+            if (userData.balance < cost) { alert("Insufficient points!"); return; }
+
+            currentRequestIsFastPass = isFastPass;
+            db.pendingRequestPayload = { reason, cost };
+            saveDB();
+
+            if (userData.tier === 'free') {
+                document.getElementById('modal-duo-ad').classList.remove('hidden');
+            } else {
+                finalizeRequest();
+            }
+        }
+
+        function closeDuoAd() { document.getElementById('modal-duo-ad').classList.add('hidden'); finalizeRequest(); }
+        function fakeRejectAd() { alert("You must appreciate Minjoon's handsomeness to proceed!"); }
+
+        function finalizeRequest() {
+            const payload = db.pendingRequestPayload;
+            db.users[db.activeUser].balance -= payload.cost;
+            db.requests.push({ id: Date.now(), username: db.activeUser, user_reason: payload.reason, timestamp: new Date().toLocaleString(), status: "Pending", admin_reason: "", isFastPass: currentRequestIsFastPass });
+            db.pendingRequestPayload = null;
+            saveDB();
+            document.getElementById('user-entry-reason').value = "";
+            document.getElementById('user-entry-bank-pass').value = "";
+            alert("Permission requested!");
+            renderDashboard();
+        }
+
+        function escapeChatText(value) {
+            return String(value).replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            }[ch]));
+        }
+
+        function renderChat(view) {
+            const container = document.getElementById(`chat-messages-${view}`);
+            if (!container) return;
+
+            const messages = Array.isArray(db.chatMessages) ? db.chatMessages : [];
+            if (messages.length === 0) {
+                container.innerHTML = `<div class="h-full flex items-center justify-center text-slate-500 text-sm">
+                    No messages yet. Start the conversation!
+                </div>`;
+                return;
+            }
+
+            const currentUser = db.activeUser;
+            container.innerHTML = messages.map(msg => {
+                const mine = msg.username === currentUser;
+                const user = db.users[msg.username];
+                const avatar = user?.avatar?.emoji || "👤";
+                return `
+                    <div class="flex ${mine ? 'justify-end' : 'justify-start'}">
+                        <div class="max-w-[85%] ${mine ? 'items-end' : 'items-start'} flex flex-col">
+                            <div class="flex items-center gap-2 mb-1 ${mine ? 'flex-row-reverse' : ''}">
+                                <span class="text-sm">${avatar}</span>
+                                <span class="text-[11px] font-bold ${mine ? 'text-indigo-300' : 'text-slate-300'}">
+                                    ${escapeChatText(msg.username)}
+                                </span>
+                                <span class="text-[10px] text-slate-500">${escapeChatText(msg.timestamp)}</span>
+                            </div>
+                            <div class="${mine ? 'bg-indigo-600 text-white rounded-br-md' : 'bg-slate-800 text-slate-200 rounded-bl-md'} px-4 py-2.5 rounded-2xl text-sm break-words">
+                                ${escapeChatText(msg.text)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendChatMessage(event) {
+            event.preventDefault();
+            if (!db.activeUser) return;
+
+            const input = document.getElementById('chat-input-admin') || document.getElementById('chat-input-user');
+            if (!input) return;
+
+            const message = input.value.trim();
+            if (!message) return;
+
+            db.chatMessages.push({
+                id: Date.now() + Math.random(),
+                username: db.activeUser,
+                text: message,
+                timestamp: new Date().toLocaleString()
+            });
+
+            // Keep the chat manageable.
+            if (db.chatMessages.length > 200) {
+                db.chatMessages = db.chatMessages.slice(-200);
+            }
+
+            saveDB();
+            input.value = "";
+            renderChat(db.users[db.activeUser].role === 'admin' ? 'admin' : 'user');
+            input.focus();
+        }
+
+        function clearChat() {
+            if (!db.activeUser || db.users[db.activeUser].role !== 'admin') return;
+            if (!confirm("Clear the entire room chat for everyone?")) return;
+            db.chatMessages = [];
+            saveDB();
+            renderChat('admin');
+        }
+
+        let keypadInput = "";
+        function keypadPress(num) { if (keypadInput.length < 4) { keypadInput += num; document.getElementById('vault-display').innerText = keypadInput; } }
+        function keypadClear() { keypadInput = ""; document.getElementById('vault-display').innerText = "----"; document.getElementById('vault-status-msg').innerText = ""; }
+        function keypadSubmit() {
+            const matched = db.history.find(r => r.username === db.activeUser && r.status === 'Accepted' && r.pin === keypadInput);
+            const msg = document.getElementById('vault-status-msg');
+            if (matched) { msg.className = "text-xs text-emerald-400 font-bold"; msg.innerText = "🔓 VAULT UNLOCKED!"; }
+            else { msg.className = "text-xs text-rose-400 font-bold"; msg.innerText = "❌ Invalid PIN!"; }
+        }
+
+        function openBankModal() {
+            document.getElementById('modal-bank').classList.remove('hidden');
+            if (db.users[db.activeUser].bank <= 0) document.getElementById('bank-override-container').classList.remove('hidden');
+            else document.getElementById('bank-override-container').classList.add('hidden');
+        }
+        function closeBankModal() { document.getElementById('modal-bank').classList.add('hidden'); }
+        function processBankTopUp() {
+            const pass = document.getElementById('bank-modal-pass').value.trim();
+            const userData = db.users[db.activeUser];
+            if (pass !== userData.bank_password) { alert("Incorrect bank password!"); return; }
+            if (userData.bank <= 0 && document.getElementById('bank-admin-override-pass').value.trim() !== db.users["minjoonsong"].password) { alert("Incorrect Admin override password!"); return; }
+            if (userData.bank <= 0) userData.bank = 100;
+            if (userData.bank < 50) { alert("Not enough bank funds!"); return; }
+            userData.bank -= 50; userData.balance += 50;
+            saveDB(); closeBankModal(); alert("Top-up successful!"); renderDashboard();
+        }
+
+        function buyTier(tierName, cost) {
+            const userData = db.users[db.activeUser];
+            if (userData.balance < cost) { alert("Insufficient points!"); return; }
+            userData.balance -= cost; userData.tier = tierName.toUpperCase();
+            saveDB(); alert(`Upgraded to ${tierName.toUpperCase()}!`); renderDashboard();
+        }
+
+        function openLearnMore(tier) {
+            document.getElementById('modal-learn-more').classList.remove('hidden');
+            const title = document.getElementById('learn-more-title');
+            const body = document.getElementById('learn-more-body');
+            if (tier === 'pro') { title.innerText = "⭐ PRO Tier Perks"; body.innerHTML = "<p>• Removes annoying ads</p><p>• Entry discounts</p><p>• Unlocks Character Studio</p>"; }
+            else if (tier === 'mega') { title.innerText = "🔥 MEGA Tier Perks"; body.innerHTML = "<p>• Bigger entry discounts</p><p>• Higher bank limits</p>"; }
+            else { title.innerText = "⚡ ULTRA Tier Perks"; body.innerHTML = "<p>• Ultimate flex status</p><p>• Priority queue</p>"; }
+        }
+        function closeLearnMore() { document.getElementById('modal-learn-more').classList.add('hidden'); }
+
+        function changeAvatarFeature(type, options) {
+            const userData = db.users[db.activeUser];
+            const currentIdx = options.indexOf(userData.avatar[type]);
+            userData.avatar[type] = options[(currentIdx + 1) % options.length];
+            saveDB(); renderDashboard();
+        }
+
+        function submitQuest(questId) {
+            const q = db.quests.find(x => x.id === questId);
+            if (!q) return;
+            q.status = "pending_approval"; q.completedBy = db.activeUser;
+            saveDB(); alert("Quest submitted!"); renderDashboard();
+        }
+
+        window.onload = function() { renderDashboard(); };
+    </script>
+</body>
+</html>
