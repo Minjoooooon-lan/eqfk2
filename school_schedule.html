@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Schedule 7-1</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        space: {
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151',
+                        },
+                        neon: {
+                            purple: '#c084fc',
+                            cyan: '#22d3ee',
+                            pink: '#f472b6',
+                            emerald: '#34d399',
+                            amber: '#fbbf24'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0b0f19 70%);
+            color: #f3f4f6;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-active {
+            background: rgba(30, 27, 75, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(192, 132, 252, 0.4);
+            box-shadow: 0 0 25px rgba(192, 132, 252, 0.25);
+        }
+
+        .neon-glow {
+            text-shadow: 0 0 10px rgba(192, 132, 252, 0.5), 0 0 20px rgba(34, 211, 238, 0.3);
+        }
+
+        .bg-mesh {
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(126, 34, 206, 0.15) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(14, 165, 233, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Custom smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body class="bg-mesh relative selection:bg-purple-500 selection:text-white">
+
+    <div class="max-w-4xl mx-auto px-4 py-8 relative z-10">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-8">
+            <div class="inline-block mb-3 px-4 py-1.5 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-medium tracking-wide uppercase shadow-lg shadow-purple-900/20">
+                <i class="fa-solid fa-graduation-cap mr-1.5"></i> Grade 7-1 Academic Timetable
+            </div>
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-300 to-pink-400 mb-2">
+                Stellar Schedule
+            </h1>
+            <p class="text-gray-400 text-sm md:text-base">Artistic weekly planner with live period progression & transition tracking.</p>
+        </header>
+
+        <!-- Live Status Banner -->
+        <div id="live-banner" class="glass-card rounded-2xl p-5 mb-8 border-l-4 border-cyan-400 transition-all duration-300">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-xl shadow-inner">
+                        <i id="live-icon" class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs uppercase tracking-wider text-cyan-400 font-semibold mb-0.5" id="live-status-title">Live Status</div>
+                        <div id="live-status-text" class="text-lg font-bold text-gray-100">Calculating schedule status...</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 bg-space-800/80 px-4 py-2.5 rounded-xl border border-gray-700/50 w-full md:w-auto justify-between md:justify-start">
+                    <div class="text-right">
+                        <div class="text-[10px] text-gray-400 uppercase tracking-wide">Current Time</div>
+                        <div id="clock-display" class="text-sm font-mono font-bold text-purple-300">--:--:-- --</div>
+                    </div>
+                    <div class="h-8 w-[1px] bg-gray-700 mx-1"></div>
+                    <div>
+                        <div class="text-[10px] text-gray-400 uppercase tracking-wide">Today</div>
+                        <div id="today-display" class="text-sm font-bold text-cyan-300">---</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day Selection Tabs -->
+        <div class="flex overflow-x-auto pb-2 mb-6 gap-2 no-scrollbar justify-start md:justify-center">
+            <button onclick="switchDay('Monday')" id="btn-Monday" class="day-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-space-800 text-gray-300 hover:bg-space-700 border border-gray-700/50 whitespace-nowrap">
+                Monday
+            </button>
+            <button onclick="switchDay('Tuesday')" id="btn-Tuesday" class="day-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-space-800 text-gray-300 hover:bg-space-700 border border-gray-700/50 whitespace-nowrap">
+                Tuesday
+            </button>
+            <button onclick="switchDay('Wednesday')" id="btn-Wednesday" class="day-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-space-800 text-gray-300 hover:bg-space-700 border border-gray-700/50 whitespace-nowrap">
+                Wednesday
+            </button>
+            <button onclick="switchDay('Thursday')" id="btn-Thursday" class="day-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-space-800 text-gray-300 hover:bg-space-700 border border-gray-700/50 whitespace-nowrap">
+                Thursday
+            </button>
+            <button onclick="switchDay('Friday')" id="btn-Friday" class="day-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 bg-space-800 text-gray-300 hover:bg-space-700 border border-gray-700/50 whitespace-nowrap">
+                Friday
+            </button>
+        </div>
+
+        <!-- Schedule Container -->
+        <div class="glass-card rounded-3xl p-6 md:p-8 mb-8">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-800">
+                <div>
+                    <h2 id="current-selected-day-title" class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-day text-purple-400"></i> Monday Schedule
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1">Showing periods, transition timings, room locations, and countdowns.</p>
+                </div>
+                <button onclick="jumpToToday()" class="px-3.5 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-medium transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-bullseye"></i> Jump to Today
+                </button>
+            </div>
+
+            <!-- Periods List -->
+            <div id="periods-container" class="space-y-4">
+                <!-- Javascript will inject schedule items here -->
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <footer class="text-center text-xs text-gray-500 pb-8">
+            <p>Stellar Schedule 7-1 • Crafted with cosmic precision ✨</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Schedule Data Structure for Monday through Friday
+        const scheduleData = {
+            Monday: [
+                { period: "HR", name: "Homeroom - 7 1", time: "07:00 - 08:00 am", start: "07:50", end: "08:00", room: "C313", type: "homeroom" },
+                { period: "P1", name: "World Cultures and Geography 7 1", time: "08:05 - 08:50 am", start: "08:05", end: "08:50", room: "C313", type: "academic" },
+                { period: "P2", name: "Art - 7 1", time: "08:55 - 09:40 am", start: "08:55", end: "09:40", room: "Art Studio", type: "arts" },
+                { period: "P3", name: "English Language Arts - 7 1", time: "10:00 - 10:45 am", start: "10:00", end: "10:45", room: "C310", type: "academic" },
+                { period: "P4", name: "Mathematics - 7 1", time: "10:50 - 11:35 am", start: "10:50", end: "11:35", room: "C308", type: "academic" },
+                { period: "P5", name: "Physical Education - 7 1", time: "11:40 - 12:25 pm", start: "11:40", end: "12:25", room: "Gymnasium", type: "sports" },
+                { period: "P6", name: "Thai Language and Culture - 7 4", time: "01:15 - 02:00 pm", start: "13:15", end: "14:00", room: "C209", type: "language" },
+                { period: "P7", name: "General Science - 7 1", time: "02:05 - 02:50 pm", start: "14:05", end: "14:50", room: "C316", type: "science" }
+            ],
+            Tuesday: [
+                { period: "HR", name: "Homeroom - 7 1", time: "07:50 - 08:00 am", start: "07:50", end: "08:00", room: "C313", type: "homeroom" },
+                { period: "P1", name: "World Cultures and Geography 7 1", time: "08:05 - 08:50 am", start: "08:05", end: "08:50", room: "C313", type: "academic" },
+                { period: "P2", name: "Languages (Japanese - Foundations 2)", time: "08:55 - 09:40 am", start: "08:55", end: "09:40", room: "C213", type: "language" },
+                { period: "P3", name: "English Language Arts - 7 1", time: "10:00 - 10:45 am", start: "10:00", end: "10:45", room: "C310", type: "academic" },
+                { period: "P4", name: "Mathematics - 7 1", time: "10:50 - 11:35 am", start: "10:50", end: "11:35", room: "C308", type: "academic" },
+                { period: "P5", name: "Computer Science - 7 1", time: "11:40 - 12:25 pm", start: "11:40", end: "12:25", room: "C201", type: "tech" },
+                { period: "P6", name: "Thai Language and Culture - 7 4", time: "01:15 - 02:00 pm", start: "13:15", end: "14:00", room: "C209", type: "language" },
+                { period: "P7", name: "General Science - 7 1", time: "02:05 - 02:50 pm", start: "14:05", end: "14:50", room: "C316", type: "science" }
+            ],
+            Wednesday: [
+                { period: "HR", name: "Homeroom - 7 1", time: "07:50 - 08:00 am", start: "07:50", end: "08:00", room: "C313", type: "homeroom" },
+                { period: "P1", name: "World Cultures and Geography 7 1", time: "08:05 - 08:50 am", start: "08:05", end: "08:50", room: "C313", type: "academic" },
+                { period: "P2", name: "Music 7 1", time: "08:55 - 09:40 am", start: "08:55", end: "09:40", room: "Music Room", type: "arts" },
+                { period: "P3", name: "English Language Arts - 7 1", time: "10:00 - 10:45 am", start: "10:00", end: "10:45", room: "C310", type: "academic" },
+                { period: "P4", name: "Mathematics - 7 1", time: "10:50 - 11:35 am", start: "10:50", end: "11:35", room: "C308", type: "academic" },
+                { period: "P5", name: "Physical Education - 7 1", time: "11:40 - 12:25 pm", start: "11:40", end: "12:25", room: "Gymnasium", type: "sports" },
+                { period: "P6", name: "Thai Language and Culture - 7 4", time: "01:15 - 02:00 pm", start: "13:15", end: "14:00", room: "C209", type: "language" },
+                { period: "P7", name: "General Science - 7 1", time: "02:05 - 02:50 pm", start: "14:05", end: "14:50", room: "C316", type: "science" }
+            ],
+            Thursday: [
+                { period: "HR", name: "Homeroom - 7 1", time: "07:50 - 08:00 am", start: "07:50", end: "08:00", room: "C313", type: "homeroom" },
+                { period: "P1", name: "World Cultures and Geography 7 1", time: "08:05 - 08:50 am", start: "08:05", end: "08:50", room: "C313", type: "academic" },
+                { period: "P2", name: "Languages (Japanese - Foundations 2)", time: "08:55 - 09:40 am", start: "08:55", end: "09:40", room: "C213", type: "language" },
+                { period: "P3", name: "English Language Arts - 7 1", time: "10:00 - 10:45 am", start: "10:00", end: "10:45", room: "C310", type: "academic" },
+                { period: "P4", name: "Mathematics - 7 1", time: "10:50 - 11:35 am", start: "10:50", end: "11:35", room: "C308", type: "academic" },
+                { period: "P5", name: "Computer Science - 7 1", time: "11:40 - 12:25 pm", start: "11:40", end: "12:25", room: "C201", type: "tech" },
+                { period: "P6", name: "PSHE 7 1", time: "01:15 - 02:00 pm", start: "13:15", end: "14:00", room: "C206", type: "wellness" },
+                { period: "P7", name: "General Science - 7 1", time: "02:05 - 02:50 pm", start: "14:05", end: "14:50", room: "C316", type: "science" }
+            ],
+            Friday: [
+                { period: "HR", name: "Homeroom - 7 1", time: "07:50 - 08:00 am", start: "07:50", end: "08:00", room: "C313", type: "homeroom" },
+                { period: "P1", name: "World Cultures and Geography 7 1", time: "08:05 - 08:50 am", start: "08:05", end: "08:50", room: "C313", type: "academic" },
+                { period: "P2", name: "Music 7 1", time: "08:55 - 09:40 am", start: "08:55", end: "09:40", room: "Music Room", type: "arts" },
+                { period: "P3", name: "English Language Arts - 7 1", time: "10:00 - 10:45 am", start: "10:00", end: "10:45", room: "C310", type: "academic" },
+                { period: "P4", name: "Mathematics - 7 1", time: "10:50 - 11:35 am", start: "10:50", end: "11:35", room: "C308", type: "academic" },
+                { period: "P5", name: "Art - 7 1", time: "11:40 - 12:25 pm", start: "11:40", end: "12:25", room: "Art Studio", type: "arts" },
+                { period: "P6", name: "Thai Language and Culture - 7 4", time: "01:15 - 02:00 pm", start: "13:15", end: "14:00", room: "C209", type: "language" },
+                { period: "P7", name: "General Science - 7 1", time: "02:05 - 02:50 pm", start: "14:05", end: "14:50", room: "C316", type: "science" }
+            ]
+        };
+
+        let currentActiveDay = 'Monday';
+
+        // Helper to get today's weekday name
+        function getRealDayName() {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const day = days[new Date().getDay()];
+            return (day === 'Saturday' || day === 'Sunday') ? 'Monday' : day;
+        }
+
+        function switchDay(dayName) {
+            currentActiveDay = dayName;
+            
+            // Update Tab buttons styling
+            document.querySelectorAll('.day-tab').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'text-white', 'shadow-lg', 'shadow-purple-600/30', 'border-purple-400');
+                btn.classList.add('bg-space-800', 'text-gray-300');
+            });
+            const activeBtn = document.getElementById(`btn-${dayName}`);
+            if(activeBtn) {
+                activeBtn.classList.remove('bg-space-800', 'text-gray-300');
+                activeBtn.classList.add('bg-purple-600', 'text-white', 'shadow-lg', 'shadow-purple-600/30', 'border-purple-400');
+            }
+
+            // Update header title
+            document.getElementById('current-selected-day-title').innerHTML = `<i class="fa-solid fa-calendar-day text-purple-400"></i> ${dayName} Schedule`;
+
+            renderSchedule();
+        }
+
+        function jumpToToday() {
+            const today = getRealDayName();
+            switchDay(today);
+        }
+
+        // Convert time string "HH:MM" in 24hr format to minutes from midnight
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function renderSchedule() {
+            const container = document.getElementById('periods-container');
+            const dayPeriods = scheduleData[currentActiveDay];
+            
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const realDay = getRealDayName();
+            const isToday = (currentActiveDay === realDay);
+
+            let html = '';
+
+            dayPeriods.forEach((item, index) => {
+                const startMin = timeToMinutes(item.start);
+                const endMin = timeToMinutes(item.end);
+                
+                let statusClass = 'border-gray-800/80 bg-space-800/40 hover:bg-space-800/80';
+                let badgeHtml = '';
+                let timerHtml = '';
+
+                if (isToday) {
+                    if (currentMinutes >= startMin && currentMinutes <= endMin) {
+                        // Currently Ongoing
+                        statusClass = 'glass-card-active border-purple-500/80 shadow-purple-500/20';
+                        badgeHtml = '<span class="px-2.5 py-1 rounded-md bg-purple-500/20 border border-purple-400/40 text-purple-300 text-xs font-bold uppercase tracking-wider animate-pulse flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-400"></span> Ongoing Now</span>';
+                        
+                        const remainingMin = endMin - currentMinutes;
+                        timerHtml = `<div class="text-xs text-purple-300 mt-2 flex items-center gap-1"><i class="fa-solid fa-hourglass-half"></i> Period ends in ~${remainingMin} minute${remainingMin !== 1 ? 's' : ''} (At ${item.end})</div>`;
+                    } else if (index > 0 && currentMinutes > timeToMinutes(dayPeriods[index-1].end) && currentMinutes < startMin) {
+                        // Currently in transition / break before this period
+                        const prevItem = dayPeriods[index-1];
+                        statusClass = 'border-cyan-500/40 bg-cyan-950/20';
+                        badgeHtml = `<span class="px-2.5 py-1 rounded-md bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider">Next Up</span>`;
+                        const waitMin = startMin - currentMinutes;
+                        timerHtml = `<div class="text-xs text-cyan-300 mt-2 flex items-center gap-1"><i class="fa-solid fa-forward"></i> Next period starts in ${waitMin} minute${waitMin !== 1 ? 's' : ''} (At ${item.start})</div>`;
+                    } else if (index === 0 && currentMinutes < startMin) {
+                        badgeHtml = `<span class="px-2.5 py-1 rounded-md bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider">Upcoming Today</span>`;
+                    }
+                }
+
+                // Type Icon mapping
+                let iconClass = "fa-book";
+                if(item.type === 'homeroom') iconClass = "fa-house-chimney";
+                else if(item.type === 'arts') iconClass = "fa-palette";
+                else if(item.type === 'sports') iconClass = "fa-person-running";
+                else if(item.type === 'language') iconClass = "fa-language";
+                else if(item.type === 'science') iconClass = "fa-flask";
+                else if(item.type === 'tech') iconClass = "fa-laptop-code";
+                else if(item.type === 'wellness') iconClass = "fa-heart-pulse";
+
+                html += `
+                    <div class="p-5 rounded-2xl border ${statusClass} transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-space-700/80 border border-gray-600/50 flex items-center justify-center text-purple-300 text-base font-bold shrink-0 shadow-inner">
+                                <i class="fa-solid ${iconClass}"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded bg-space-700 text-cyan-300 border border-gray-600/40">${item.period}</span>
+                                    <h3 class="text-base font-semibold text-white">${item.name}</h3>
+                                    ${badgeHtml}
+                                </div>
+                                <div class="text-xs text-gray-400 flex items-center gap-3 mt-1 flex-wrap">
+                                    <span><i class="fa-regular fa-clock mr-1 text-purple-400"></i> ${item.time}</span>
+                                    ${item.room ? `<span><i class="fa-solid fa-location-dot mr-1 text-pink-400"></i> Room: ${item.room}</span>` : ''}
+                                </div>
+                                ${timerHtml}
+                            </div>
+                        </div>
+                        <div class="text-right hidden md:block">
+                            <span class="text-xs font-mono text-gray-500 uppercase tracking-widest">${item.period} TIMELINE</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Live Clock & Status Update
+        function updateLiveStatus() {
+            const now = new Date();
+            
+            // Format clock
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const ampm = hours >= 12 ? 'pm' : 'am';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${ampm}`;
+            
+            document.getElementById('clock-display').innerText = timeString;
+            const realDay = getRealDayName();
+            document.getElementById('today-display').innerText = realDay;
+
+            // Update banner status
+            const dayPeriods = scheduleData[realDay];
+            const currentMin = now.getHours() * 60 + now.getMinutes();
+            
+            let activePeriod = null;
+            let nextPeriod = null;
+
+            for (let i = 0; i < dayPeriods.length; i++) {
+                const p = dayPeriods[i];
+                const sMin = timeToMinutes(p.start);
+                const eMin = timeToMinutes(p.end);
+
+                if (currentMin >= sMin && currentMin <= eMin) {
+                    activePeriod = p;
+                    if (i + 1 < dayPeriods.length) {
+                        nextPeriod = dayPeriods[i + 1];
+                    }
+                    break;
+                } else if (currentMin < sMin) {
+                    nextPeriod = p;
+                    break;
+                }
+            }
+
+            const titleEl = document.getElementById('live-status-title');
+            const textEl = document.getElementById('live-status-text');
+            const iconEl = document.getElementById('live-icon');
+            const bannerEl = document.getElementById('live-banner');
+
+            if (activePeriod) {
+                titleEl.innerText = "Currently Ongoing (" + activePeriod.period + ")";
+                textEl.innerText = `${activePeriod.name} (${activePeriod.time}) in ${activePeriod.room || 'Room assigned'}`;
+                iconEl.className = "fa-solid fa-bell animate-bounce text-purple-400";
+                bannerEl.className = "glass-card rounded-2xl p-5 mb-8 border-l-4 border-purple-400 transition-all duration-300";
+            } else if (nextPeriod) {
+                const sMin = timeToMinutes(nextPeriod.start);
+                const diffMin = sMin - currentMin;
+                titleEl.innerText = "Next Period Starting Soon";
+                textEl.innerText = `${nextPeriod.name} starts in ${diffMin} min (${nextPeriod.time})`;
+                iconEl.className = "fa-solid fa-hourglass-start text-cyan-400";
+                bannerEl.className = "glass-card rounded-2xl p-5 mb-8 border-l-4 border-cyan-400 transition-all duration-300";
+            } else {
+                titleEl.innerText = "School Day Completed";
+                textEl.innerText = "All classes for today have ended. Enjoy your evening! ✨";
+                iconEl.className = "fa-solid fa-moon text-pink-400";
+                bannerEl.className = "glass-card rounded-2xl p-5 mb-8 border-l-4 border-pink-400 transition-all duration-300";
+            }
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            const today = getRealDayName();
+            switchDay(today);
+            updateLiveStatus();
+            setInterval(updateLiveStatus, 1000);
+        };
+    </script>
+</body>
+</html>
