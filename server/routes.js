@@ -74,12 +74,6 @@ function loadRun(code) {
   return rowToRun(row);
 }
 
-function saveRun(run) {
-  const state = run.state;
-  run.state.updatedAt = new Date().toISOString();
-  run(state) // placeholder removed below
-}
-
 function logEvent(code, kind, { chapter, nodeId, label, payload } = {}) {
   run(
     'INSERT INTO run_events (code, kind, chapter_index, node_id, label, payload_json, created_at) VALUES (?,?,?,?,?,?,?)',
